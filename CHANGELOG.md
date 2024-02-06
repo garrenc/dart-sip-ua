@@ -1,5 +1,8 @@
 # Changelog
 
+[1.10.0]
+- Added getter for UA
+
 [1.0.8]
 - Fix merge conflicts
 

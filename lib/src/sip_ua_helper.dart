@@ -31,19 +31,12 @@ class SIPUAHelper extends EventManager {
   UaSettings? _uaSettings;
   final Map<String?, Call> _calls = <String?, Call>{};
 
-  RegistrationState _registerState =
-      RegistrationState(state: RegistrationStateEnum.NONE);
+  UA? get ua => _ua;
+
+  RegistrationState _registerState = RegistrationState(state: RegistrationStateEnum.NONE);
 
   /// Sets the logging level for the default logger. Has no effect if custom logger is supplied.
   set loggingLevel(Level loggingLevel) => Log.loggingLevel = loggingLevel;
-
-  /// Sets the log callback for the default logger. Has no effect if custom logger is supplied.
-  void setup({required Level loggingLevel, LogCallback? logCallback}) {
-    this.loggingLevel = loggingLevel;
-    if (logCallback != null) {
-      Logger.addLogListener(logCallback);
-    }
-  }
 
   bool get registered {
     if (_ua != null) {
@@ -77,8 +70,7 @@ class SIPUAHelper extends EventManager {
   }
 
   void register() {
-    assert(_ua != null,
-        'register called but not started, you must call start first.');
+    assert(_ua != null, 'register called but not started, you must call start first.');
     _ua!.register();
   }
 
@@ -91,11 +83,7 @@ class SIPUAHelper extends EventManager {
     }
   }
 
-  Future<bool> call(String target,
-      {bool voiceonly = false,
-      MediaStream? mediaStream,
-      List<String>? headers,
-      Map<String, dynamic>? customOptions}) async {
+  Future<bool> call(String target, {bool voiceonly = false, MediaStream? mediaStream, List<String>? headers, Map<String, dynamic>? customOptions}) async {
     if (_ua != null && _ua!.isConnected()) {
       Map<String, dynamic> options = buildCallOptions(voiceonly);
       if (customOptions != null) {
@@ -109,8 +97,7 @@ class SIPUAHelper extends EventManager {
       _ua!.call(target, options);
       return true;
     } else {
-      logger.e(
-          'Not connected, you will need to register.', null, StackTraceNJ());
+      logger.e('Not connected, you will need to register.', null, StackTraceNJ());
     }
     return false;
   }
@@ -129,9 +116,8 @@ class SIPUAHelper extends EventManager {
 
     // Reset settings
     _settings = Settings();
-    WebSocketInterface socket = uaSettings.webSocketInterface ?? WebSocketInterface(uaSettings.webSocketUrl,
-        messageDelay: _settings.sip_message_delay,
-        webSocketSettings: uaSettings.webSocketSettings);
+    WebSocketInterface socket =
+        uaSettings.webSocketInterface ?? WebSocketInterface(uaSettings.webSocketUrl, messageDelay: _settings.sip_message_delay, webSocketSettings: uaSettings.webSocketSettings);
     _settings.sockets = <WebSocketInterface>[socket];
     _settings.uri = uaSettings.uri;
     _settings.sip_message_delay = uaSettings.sip_message_delay;
@@ -143,8 +129,7 @@ class SIPUAHelper extends EventManager {
     _settings.user_agent = uaSettings.userAgent ?? DartSIP_C.USER_AGENT;
     _settings.register = uaSettings.register;
     _settings.register_expires = uaSettings.register_expires;
-    _settings.register_extra_contact_uri_params =
-        uaSettings.registerParams.extraContactUriParams;
+    _settings.register_extra_contact_uri_params = uaSettings.registerParams.extraContactUriParams;
     _settings.dtmf_mode = uaSettings.dtmfMode;
     _settings.session_timers = uaSettings.sessionTimers;
     _settings.ice_gathering_timeout = uaSettings.iceGatheringTimeout;
@@ -153,34 +138,28 @@ class SIPUAHelper extends EventManager {
       _ua = UA(_settings);
       _ua!.on(EventSocketConnecting(), (EventSocketConnecting event) {
         logger.d('connecting => $event');
-        _notifyTransportStateListeners(
-            TransportState(TransportStateEnum.CONNECTING));
+        _notifyTransportStateListeners(TransportState(TransportStateEnum.CONNECTING));
       });
 
       _ua!.on(EventSocketConnected(), (EventSocketConnected event) {
         logger.d('connected => $event');
-        _notifyTransportStateListeners(
-            TransportState(TransportStateEnum.CONNECTED));
+        _notifyTransportStateListeners(TransportState(TransportStateEnum.CONNECTED));
       });
 
       _ua!.on(EventSocketDisconnected(), (EventSocketDisconnected event) {
         logger.d('disconnected => ${event.cause}');
-        _notifyTransportStateListeners(TransportState(
-            TransportStateEnum.DISCONNECTED,
-            cause: event.cause));
+        _notifyTransportStateListeners(TransportState(TransportStateEnum.DISCONNECTED, cause: event.cause));
       });
 
       _ua!.on(EventRegistered(), (EventRegistered event) {
         logger.d('registered => ${event.cause}');
-        _registerState = RegistrationState(
-            state: RegistrationStateEnum.REGISTERED, cause: event.cause);
+        _registerState = RegistrationState(state: RegistrationStateEnum.REGISTERED, cause: event.cause);
         _notifyRegistrationStateListeners(_registerState);
       });
 
       _ua!.on(EventUnregister(), (EventUnregister event) {
         logger.d('unregistered => ${event.cause}');
-        _registerState = RegistrationState(
-            state: RegistrationStateEnum.UNREGISTERED, cause: event.cause);
+        _registerState = RegistrationState(state: RegistrationStateEnum.UNREGISTERED, cause: event.cause);
         _notifyRegistrationStateListeners(_registerState);
       });
 
@@ -190,9 +169,7 @@ class SIPUAHelper extends EventManager {
 
       _ua!.on(EventRegistrationFailed(), (EventRegistrationFailed event) {
         logger.d('registrationFailed => ${event.cause}');
-        _registerState = RegistrationState(
-            state: RegistrationStateEnum.REGISTRATION_FAILED,
-            cause: event.cause);
+        _registerState = RegistrationState(state: RegistrationStateEnum.REGISTRATION_FAILED, cause: event.cause);
         _notifyRegistrationStateListeners(_registerState);
       });
 
@@ -201,21 +178,17 @@ class SIPUAHelper extends EventManager {
         RTCSession session = event.session!;
         if (session.direction == 'incoming') {
           // Set event handlers.
-          session.addAllEventHandlers(
-              buildCallOptions()['eventHandlers'] as EventManager);
+          session.addAllEventHandlers(buildCallOptions()['eventHandlers'] as EventManager);
         }
-        _calls[event.id] =
-            Call(event.id, session, CallStateEnum.CALL_INITIATION);
-        _notifyCallStateListeners(
-            event, CallState(CallStateEnum.CALL_INITIATION));
+        _calls[event.id] = Call(event.id, session, CallStateEnum.CALL_INITIATION);
+        _notifyCallStateListeners(event, CallState(CallStateEnum.CALL_INITIATION));
       });
 
       _ua!.on(EventNewMessage(), (EventNewMessage event) {
         logger.d('newMessage => $event');
         //Only notify incoming message to listener
         if (event.message!.direction == 'incoming') {
-          SIPMessageRequest message =
-              SIPMessageRequest(event.message, event.originator, event.request);
+          SIPMessageRequest message = SIPMessageRequest(event.message, event.originator, event.request);
           _notifyNewMessageListeners(message);
         }
       });
@@ -229,8 +202,7 @@ class SIPUAHelper extends EventManager {
   /// Build the call options.
   /// You may override this method in a custom SIPUAHelper class in order to
   /// modify the options to your needs.
-  Map<String, dynamic> buildCallOptions([bool voiceonly = false]) =>
-      _options(voiceonly);
+  Map<String, dynamic> buildCallOptions([bool voiceonly = false]) => _options(voiceonly);
 
   Map<String, dynamic> _options([bool voiceonly = false]) {
     // Register callbacks to desired call events
@@ -241,23 +213,16 @@ class SIPUAHelper extends EventManager {
     });
     handlers.on(EventCallProgress(), (EventCallProgress event) {
       logger.d('call is in progress');
-      _notifyCallStateListeners(event,
-          CallState(CallStateEnum.PROGRESS, originator: event.originator));
+      _notifyCallStateListeners(event, CallState(CallStateEnum.PROGRESS, originator: event.originator));
     });
     handlers.on(EventCallFailed(), (EventCallFailed event) {
       logger.d('call failed with cause: ${event.cause}');
-      _notifyCallStateListeners(
-          event,
-          CallState(CallStateEnum.FAILED,
-              originator: event.originator, cause: event.cause));
+      _notifyCallStateListeners(event, CallState(CallStateEnum.FAILED, originator: event.originator, cause: event.cause));
       _calls.remove(event.id);
     });
     handlers.on(EventCallEnded(), (EventCallEnded event) {
       logger.d('call ended with cause: ${event.cause}');
-      _notifyCallStateListeners(
-          event,
-          CallState(CallStateEnum.ENDED,
-              originator: event.originator, cause: event.cause));
+      _notifyCallStateListeners(event, CallState(CallStateEnum.ENDED, originator: event.originator, cause: event.cause));
       _calls.remove(event.id);
     });
     handlers.on(EventCallAccepted(), (EventCallAccepted event) {
@@ -270,42 +235,30 @@ class SIPUAHelper extends EventManager {
     });
     handlers.on(EventCallHold(), (EventCallHold event) {
       logger.d('call hold');
-      _notifyCallStateListeners(
-          event, CallState(CallStateEnum.HOLD, originator: event.originator));
+      _notifyCallStateListeners(event, CallState(CallStateEnum.HOLD, originator: event.originator));
     });
     handlers.on(EventCallUnhold(), (EventCallUnhold event) {
       logger.d('call unhold');
-      _notifyCallStateListeners(
-          event, CallState(CallStateEnum.UNHOLD, originator: event.originator));
+      _notifyCallStateListeners(event, CallState(CallStateEnum.UNHOLD, originator: event.originator));
     });
     handlers.on(EventCallMuted(), (EventCallMuted event) {
       logger.d('call muted');
-      _notifyCallStateListeners(
-          event,
-          CallState(CallStateEnum.MUTED,
-              audio: event.audio, video: event.video));
+      _notifyCallStateListeners(event, CallState(CallStateEnum.MUTED, audio: event.audio, video: event.video));
     });
 
     handlers.on(EventCallUnmuted(), (EventCallUnmuted event) {
       logger.d('call unmuted');
-      _notifyCallStateListeners(
-          event,
-          CallState(CallStateEnum.UNMUTED,
-              audio: event.audio, video: event.video));
+      _notifyCallStateListeners(event, CallState(CallStateEnum.UNMUTED, audio: event.audio, video: event.video));
     });
     handlers.on(EventStream(), (EventStream event) async {
       // Waiting for callscreen ready.
       Timer(Duration(milliseconds: 100), () {
-        _notifyCallStateListeners(
-            event,
-            CallState(CallStateEnum.STREAM,
-                stream: event.stream, originator: event.originator));
+        _notifyCallStateListeners(event, CallState(CallStateEnum.STREAM, stream: event.stream, originator: event.originator));
       });
     });
     handlers.on(EventCallRefer(), (EventCallRefer refer) async {
       logger.d('Refer received, Transfer current call to => ${refer.aor}');
-      _notifyCallStateListeners(
-          refer, CallState(CallStateEnum.REFER, refer: refer));
+      _notifyCallStateListeners(refer, CallState(CallStateEnum.REFER, refer: refer));
       //Always accept.
       refer.accept((RTCSession session) {
         logger.d('session initialized.');
@@ -315,10 +268,7 @@ class SIPUAHelper extends EventManager {
     Map<String, dynamic> defaultOptions = <String, dynamic>{
       'eventHandlers': handlers,
       'extraHeaders': <dynamic>[],
-      'pcConfig': <String, dynamic>{
-        'sdpSemantics': 'unified-plan',
-        'iceServers': _uaSettings?.iceServers
-      },
+      'pcConfig': <String, dynamic>{'sdpSemantics': 'unified-plan', 'iceServers': _uaSettings?.iceServers},
       'mediaConstraints': <String, dynamic>{
         'audio': true,
         'video': voiceonly
@@ -358,8 +308,7 @@ class SIPUAHelper extends EventManager {
     return defaultOptions;
   }
 
-  Message sendMessage(String target, String body,
-      [Map<String, dynamic>? options]) {
+  Message sendMessage(String target, String body, [Map<String, dynamic>? options]) {
     return _ua!.sendMessage(target, body, options);
   }
 
@@ -377,8 +326,7 @@ class SIPUAHelper extends EventManager {
     _ua!.terminateSessions(options);
   }
 
-  final Set<SipUaHelperListener> _sipUaHelperListeners =
-      <SipUaHelperListener>{};
+  final Set<SipUaHelperListener> _sipUaHelperListeners = <SipUaHelperListener>{};
 
   void addSipUaHelperListener(SipUaHelperListener listener) {
     _sipUaHelperListeners.add(listener);
@@ -441,22 +389,7 @@ class SIPUAHelper extends EventManager {
   }
 }
 
-enum CallStateEnum {
-  NONE,
-  STREAM,
-  UNMUTED,
-  MUTED,
-  CONNECTING,
-  PROGRESS,
-  FAILED,
-  ENDED,
-  ACCEPTED,
-  CONFIRMED,
-  REFER,
-  HOLD,
-  UNHOLD,
-  CALL_INITIATION
-}
+enum CallStateEnum { NONE, STREAM, UNMUTED, MUTED, CONNECTING, PROGRESS, FAILED, ENDED, ACCEPTED, CONFIRMED, REFER, HOLD, UNHOLD, CALL_INITIATION }
 
 class Call {
   Call(this._id, this._session, this.state);
@@ -528,32 +461,24 @@ class Call {
   }
 
   String? get remote_display_name {
-    assert(_session != null,
-        'ERROR(get remote_identity): rtc session is invalid!');
-    if (_session.remote_identity != null &&
-        _session.remote_identity!.display_name != null) {
+    assert(_session != null, 'ERROR(get remote_identity): rtc session is invalid!');
+    if (_session.remote_identity != null && _session.remote_identity!.display_name != null) {
       return _session.remote_identity!.display_name;
     }
     return '';
   }
 
   String? get remote_identity {
-    assert(_session != null,
-        'ERROR(get remote_identity): rtc session is invalid!');
-    if (_session.remote_identity != null &&
-        _session.remote_identity!.uri != null &&
-        _session.remote_identity!.uri!.user != null) {
+    assert(_session != null, 'ERROR(get remote_identity): rtc session is invalid!');
+    if (_session.remote_identity != null && _session.remote_identity!.uri != null && _session.remote_identity!.uri!.user != null) {
       return _session.remote_identity!.uri!.user;
     }
     return '';
   }
 
   String? get local_identity {
-    assert(
-        _session != null, 'ERROR(get local_identity): rtc session is invalid!');
-    if (_session.local_identity != null &&
-        _session.local_identity!.uri != null &&
-        _session.local_identity!.uri!.user != null) {
+    assert(_session != null, 'ERROR(get local_identity): rtc session is invalid!');
+    if (_session.local_identity != null && _session.local_identity!.uri != null && _session.local_identity!.uri!.user != null) {
       return _session.local_identity!.uri!.user;
     }
     return '';
@@ -572,8 +497,7 @@ class Call {
   bool get remote_has_video => _peerHasMediaLine('video');
 
   bool _peerHasMediaLine(String media) {
-    assert(
-        _session != null, 'ERROR(_peerHasMediaLine): rtc session is invalid!');
+    assert(_session != null, 'ERROR(_peerHasMediaLine): rtc session is invalid!');
     if (_session.request == null) {
       return false;
     }
@@ -602,13 +526,7 @@ class Call {
 }
 
 class CallState {
-  CallState(this.state,
-      {this.originator,
-      this.audio,
-      this.video,
-      this.stream,
-      this.cause,
-      this.refer});
+  CallState(this.state, {this.originator, this.audio, this.video, this.stream, this.cause, this.refer});
   CallStateEnum state;
   ErrorCause? cause;
   String? originator;
