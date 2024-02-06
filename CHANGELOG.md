@@ -1,6 +1,6 @@
 # Changelog
 
-[1.10.0]
+[1.0.11]
 - Added getter for UA
 
 [1.0.8]

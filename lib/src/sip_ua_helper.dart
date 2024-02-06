@@ -38,6 +38,14 @@ class SIPUAHelper extends EventManager {
   /// Sets the logging level for the default logger. Has no effect if custom logger is supplied.
   set loggingLevel(Level loggingLevel) => Log.loggingLevel = loggingLevel;
 
+  /// Sets the log callback for the default logger. Has no effect if custom logger is supplied.
+  void setup({required Level loggingLevel, LogCallback? logCallback}) {
+    this.loggingLevel = loggingLevel;
+    if (logCallback != null) {
+      Logger.addLogListener(logCallback);
+    }
+  }
+
   bool get registered {
     if (_ua != null) {
       return _ua!.isRegistered();
