@@ -344,6 +344,10 @@ class SIPUAHelper extends EventManager {
     _sipUaHelperListeners.remove(listener);
   }
 
+  void clearSipUaHelperListeners() {
+    _sipUaHelperListeners.clear();
+  }
+
   void _notifyTransportStateListeners(TransportState state) {
     // Copy to prevent concurrent modification exception
     List<SipUaHelperListener> listeners = _sipUaHelperListeners.toList();
