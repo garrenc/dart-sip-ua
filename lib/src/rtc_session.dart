@@ -738,12 +738,14 @@ class RTCSession extends EventManager implements Owner {
           };
 
           // .., or when the INVITE transaction times out
-          _request.server_transaction.on(EventStateChanged(), (EventStateChanged state) {
-            if (_request.server_transaction.state == TransactionState.TERMINATED) {
-              sendRequest(SipMethod.BYE, <String, dynamic>{'extraHeaders': extraHeaders, 'body': body});
-              dialog.terminate();
-            }
-          });
+          if (_request.server_transaction is TransactionBase) {
+            (_request.server_transaction as TransactionBase).on<EventStateChanged>(EventStateChanged(), (EventStateChanged state) {
+              if (_request.server_transaction.state == TransactionState.TERMINATED) {
+                sendRequest(SipMethod.BYE, <String, dynamic>{'extraHeaders': extraHeaders, 'body': body});
+                dialog.terminate();
+              }
+            });
+          }
 
           _ended('local', null, ErrorCause(cause: cause as String?, status_code: status_code, reason_phrase: reason_phrase));
 

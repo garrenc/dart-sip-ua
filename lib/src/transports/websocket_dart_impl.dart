@@ -19,9 +19,7 @@ class WebSocketImpl {
   OnMessageCallback? onMessage;
   OnCloseCallback? onClose;
   final int messageDelay;
-  void connect(
-      {Iterable<String>? protocols,
-      required WebSocketSettings webSocketSettings}) async {
+  void connect({Iterable<String>? protocols, required WebSocketSettings webSocketSettings}) async {
     handleQueue();
     logger.i('connect $_url, ${webSocketSettings.extraHeaders}, $protocols');
     try {
@@ -29,8 +27,7 @@ class WebSocketImpl {
         /// Allow self-signed certificate, for test only.
         _socket = await _connectForBadCertificate(_url, webSocketSettings);
       } else {
-        _socket = await WebSocket.connect(_url,
-            protocols: protocols, headers: webSocketSettings.extraHeaders);
+        _socket = await WebSocket.connect(_url, protocols: protocols, headers: webSocketSettings.extraHeaders);
       }
 
       onOpen?.call();
@@ -50,8 +47,10 @@ class WebSocketImpl {
       await Future<void>.delayed(Duration(milliseconds: messageDelay));
       return event;
     }).listen((dynamic event) async {
-      _socket!.add(event);
-      logger.d('send: \n\n$event');
+      if (!queue.isClosed) {
+        _socket!.add(event);
+        logger.d('send: \n\n$event');
+      }
     });
   }
 
@@ -70,8 +69,7 @@ class WebSocketImpl {
   }
 
   /// For test only.
-  Future<WebSocket> _connectForBadCertificate(
-      String url, WebSocketSettings webSocketSettings) async {
+  Future<WebSocket> _connectForBadCertificate(String url, WebSocketSettings webSocketSettings) async {
     try {
       Random r = Random();
       String key = base64.encode(List<int>.generate(16, (_) => r.nextInt(255)));
@@ -82,26 +80,20 @@ class WebSocketImpl {
         client.userAgent = webSocketSettings.userAgent;
       }
 
-      client.badCertificateCallback =
-          (X509Certificate cert, String host, int port) {
+      client.badCertificateCallback = (X509Certificate cert, String host, int port) {
         logger.w('Allow self-signed certificate => $host:$port. ');
         return true;
       };
 
       Uri parsed_uri = Uri.parse(url);
-      Uri uri = parsed_uri.replace(
-          scheme: parsed_uri.scheme == 'wss' ? 'https' : 'http');
+      Uri uri = parsed_uri.replace(scheme: parsed_uri.scheme == 'wss' ? 'https' : 'http');
 
-      HttpClientRequest request =
-          await client.getUrl(uri); // form the correct url here
+      HttpClientRequest request = await client.getUrl(uri); // form the correct url here
       request.headers.add('Connection', 'Upgrade', preserveHeaderCase: true);
       request.headers.add('Upgrade', 'websocket', preserveHeaderCase: true);
-      request.headers.add('Sec-WebSocket-Version', '13',
-          preserveHeaderCase: true); // insert the correct version here
-      request.headers.add('Sec-WebSocket-Key', key.toLowerCase(),
-          preserveHeaderCase: true);
-      request.headers
-          .add('Sec-WebSocket-Protocol', 'sip', preserveHeaderCase: true);
+      request.headers.add('Sec-WebSocket-Version', '13', preserveHeaderCase: true); // insert the correct version here
+      request.headers.add('Sec-WebSocket-Key', key.toLowerCase(), preserveHeaderCase: true);
+      request.headers.add('Sec-WebSocket-Protocol', 'sip', preserveHeaderCase: true);
 
       webSocketSettings.extraHeaders.forEach((String key, dynamic value) {
         request.headers.add(key, value, preserveHeaderCase: true);

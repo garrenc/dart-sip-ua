@@ -103,9 +103,7 @@ class UA extends EventManager {
   }
 
   final Map<String?, Subscriber> _subscribers = <String?, Subscriber>{};
-  final Map<String, dynamic> _cache = <String, dynamic>{
-    'credentials': <dynamic>{}
-  };
+  final Map<String, dynamic> _cache = <String, dynamic>{'credentials': <dynamic>{}};
 
   final Settings _configuration = Settings();
   DynamicSettings? _dynConfiguration = DynamicSettings();
@@ -170,8 +168,7 @@ class UA extends EventManager {
     } else if (_status == C.STATUS_READY) {
       logger.d('UA is in READY status, not restarted');
     } else {
-      logger.d(
-          'ERROR: connection is down, Auto-Recovery system is trying to reconnect');
+      logger.d('ERROR: connection is down, Auto-Recovery system is trying to reconnect');
     }
 
     // Set dynamic configuration.
@@ -212,8 +209,7 @@ class UA extends EventManager {
   ]) {
     logger.d('subscribe()');
 
-    return Subscriber(this, target, eventName, accept, expires, contentType,
-        allowEvents, requestParams, extraHeaders);
+    return Subscriber(this, target, eventName, accept, expires, contentType, allowEvents, requestParams, extraHeaders);
   }
 
   /**
@@ -263,8 +259,7 @@ class UA extends EventManager {
    * -throws {TypeError}
    *
    */
-  Message sendMessage(
-      String target, String body, Map<String, dynamic>? options) {
+  Message sendMessage(String target, String body, Map<String, dynamic>? options) {
     logger.d('sendMessage()');
     Message message = Message(this);
     message.send(target, body, options);
@@ -281,8 +276,7 @@ class UA extends EventManager {
    * -throws {TypeError}
    *
    */
-  Options sendOptions(
-      String target, String body, Map<String, dynamic>? options) {
+  Options sendOptions(String target, String body, Map<String, dynamic>? options) {
     logger.d('sendOptions()');
     Options message = Options(this);
     message.send(target, body, options);
@@ -324,7 +318,7 @@ class UA extends EventManager {
     int num_sessions = _sessions.length;
 
     // Run  _terminate_ on every Session.
-    _sessions.forEach((String? key, _) {
+    _sessions.keys.toList().forEach((String? key) {
       if (_sessions.containsKey(key)) {
         logger.d('closing session $key');
         try {
@@ -498,8 +492,7 @@ class UA extends EventManager {
       return;
     }
     _applicants.add(message);
-    emit(EventNewMessage(
-        message: message, originator: originator, request: request));
+    emit(EventNewMessage(message: message, originator: originator, request: request));
   }
 
   /**
@@ -511,8 +504,7 @@ class UA extends EventManager {
     }
     _applicants.add(message);
 
-    emit(EventNewOptions(
-        message: message, originator: originator, request: request));
+    emit(EventNewOptions(message: message, originator: originator, request: request));
   }
 
   /**
@@ -538,11 +530,9 @@ class UA extends EventManager {
   /**
    * RTCSession
    */
-  void newRTCSession(
-      {required RTCSession session, String? originator, dynamic request}) {
+  void newRTCSession({required RTCSession session, String? originator, dynamic request}) {
     _sessions[session.id] = session;
-    emit(EventNewRTCSession(
-        session: session, originator: originator, request: request));
+    emit(EventNewRTCSession(session: session, originator: originator, request: request));
   }
 
   /**
@@ -556,33 +546,21 @@ class UA extends EventManager {
    * Registered
    */
   void registered({required dynamic response}) {
-    emit(EventRegistered(
-        cause: ErrorCause(
-            cause: 'registered',
-            status_code: response.status_code,
-            reason_phrase: response.reason_phrase)));
+    emit(EventRegistered(cause: ErrorCause(cause: 'registered', status_code: response.status_code, reason_phrase: response.reason_phrase)));
   }
 
   /**
    * Unregistered
    */
   void unregistered({dynamic response, String? cause}) {
-    emit(EventUnregister(
-        cause: ErrorCause(
-            cause: cause ?? 'unregistered',
-            status_code: response?.status_code ?? 0,
-            reason_phrase: response?.reason_phrase ?? '')));
+    emit(EventUnregister(cause: ErrorCause(cause: cause ?? 'unregistered', status_code: response?.status_code ?? 0, reason_phrase: response?.reason_phrase ?? '')));
   }
 
   /**
    * Registration Failed
    */
   void registrationFailed({required dynamic response, String? cause}) {
-    emit(EventRegistrationFailed(
-        cause: ErrorCause(
-            cause: Utils.sipErrorCause(response.status_code),
-            status_code: response.status_code,
-            reason_phrase: response.reason_phrase)));
+    emit(EventRegistrationFailed(cause: ErrorCause(cause: Utils.sipErrorCause(response.status_code), status_code: response.status_code, reason_phrase: response.reason_phrase)));
   }
 
   // =================
@@ -596,8 +574,7 @@ class UA extends EventManager {
     DartSIP_C.SipMethod? method = request.method;
 
     // Check that request URI points to us.
-    if (request.ruri!.user != _configuration.uri.user &&
-        request.ruri!.user != _contact!.uri!.user) {
+    if (request.ruri!.user != _configuration.uri.user && request.ruri!.user != _contact!.uri!.user) {
       logger.d('Request-URI does not point to us');
       if (request.method != SipMethod.ACK) {
         request.reply_sl(404);
@@ -676,8 +653,7 @@ class UA extends EventManager {
             if (request.hasHeader('replaces')) {
               ParsedData replaces = request.replaces;
 
-              dialog = _findDialog(
-                  replaces.call_id, replaces.from_tag!, replaces.to_tag!);
+              dialog = _findDialog(replaces.call_id, replaces.from_tag!, replaces.to_tag!);
               if (dialog != null) {
                 session = dialog.owner as RTCSession?;
                 if (!session!.isEnded()) {
@@ -702,8 +678,7 @@ class UA extends EventManager {
           request.reply(481);
           break;
         case SipMethod.CANCEL:
-          session =
-              _findSession(request.call_id!, request.from_tag, request.to_tag);
+          session = _findSession(request.call_id!, request.from_tag, request.to_tag);
           if (session != null) {
             session.receiveRequest(request);
           } else {
@@ -731,14 +706,12 @@ class UA extends EventManager {
     }
     // In-dialog request.
     else {
-      dialog =
-          _findDialog(request.call_id!, request.from_tag!, request.to_tag!);
+      dialog = _findDialog(request.call_id!, request.from_tag!, request.to_tag!);
 
       if (dialog != null) {
         dialog.receiveRequest(request);
       } else if (method == SipMethod.NOTIFY) {
-        Subscriber? sub = _findSubscriber(
-            request.call_id!, request.from_tag!, request.to_tag!);
+        Subscriber? sub = _findSubscriber(request.call_id!, request.from_tag!, request.to_tag!);
         if (sub != null) {
           sub.receiveRequest(request);
         } else {
@@ -818,8 +791,7 @@ class UA extends EventManager {
     // Post Configuration Process.
 
     // Allow passing 0 number as display_name.
-    if (_configuration.display_name is num &&
-        (_configuration.display_name as num?) == 0) {
+    if (_configuration.display_name is num && (_configuration.display_name as num?) == 0) {
       _configuration.display_name = '0';
     }
 
@@ -833,9 +805,7 @@ class UA extends EventManager {
     URI hostport_params = _configuration.uri.clone();
 
     hostport_params.user = null;
-    _configuration.hostport_params = hostport_params
-        .toString()
-        .replaceAll(RegExp(r'sip:', caseSensitive: false), '');
+    _configuration.hostport_params = hostport_params.toString().replaceAll(RegExp(r'sip:', caseSensitive: false), '');
 
     // Transport.
     try {
@@ -888,12 +858,7 @@ class UA extends EventManager {
     }
     // Contact URI.
     else {
-      _configuration.contact_uri = URI(
-          'sip',
-          Utils.createRandomToken(8),
-          _configuration.via_host,
-          null,
-          <dynamic, dynamic>{'transport': transport});
+      _configuration.contact_uri = URI('sip', Utils.createRandomToken(8), _configuration.via_host, null, <dynamic, dynamic>{'transport': transport});
     }
     _contact = Contact(_configuration.contact_uri);
     return;
@@ -971,8 +936,7 @@ class UA extends EventManager {
 
       switch (message.method) {
         case SipMethod.INVITE:
-          InviteClientTransaction? transaction = _transactions.getTransaction(
-              InviteClientTransaction, message.via_branch!);
+          InviteClientTransaction? transaction = _transactions.getTransaction(InviteClientTransaction, message.via_branch!);
           if (transaction != null) {
             transaction.receiveResponse(message.status_code, message);
           }
@@ -981,8 +945,7 @@ class UA extends EventManager {
           // Just in case ;-).
           break;
         default:
-          NonInviteClientTransaction? transaction = _transactions
-              .getTransaction(NonInviteClientTransaction, message.via_branch!);
+          NonInviteClientTransaction? transaction = _transactions.getTransaction(NonInviteClientTransaction, message.via_branch!);
           if (transaction != null) {
             transaction.receiveResponse(message.status_code, message);
           }

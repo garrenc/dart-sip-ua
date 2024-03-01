@@ -1,5 +1,8 @@
 # Changelog
 
+[1.0.14]
+- Fixed some flutter code errors 
+
 [1.0.12]
 - Add method to clear all SIP UA's listeners
 
