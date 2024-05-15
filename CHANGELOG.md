@@ -1,21 +1,31 @@
 # Changelog
 
+[1.0.15]
+
+- Updated packages
+
 [1.0.14]
-- Fixed some flutter code errors 
+
+- Fixed some flutter code errors
 
 [1.0.12]
+
 - Add method to clear all SIP UA's listeners
 
 [1.0.11]
+
 - Added getter for UA
 
 [1.0.8]
+
 - Fix merge conflicts
 
 [1.0.7]
-- Remove _iceRestart when transport is disconnected 
+
+- Remove \_iceRestart when transport is disconnected
 
 [1.0.6]
+
 - Reinvite not successfull fix
 
 [1.0.5]
