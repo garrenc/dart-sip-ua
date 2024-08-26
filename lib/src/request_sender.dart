@@ -140,6 +140,7 @@ class RequestSender {
 
         if (!SIPUAHelper.authSet) {
           EncryptedSharedPreferences.getInstance().setString('webrtc_auth', '$authorization_header_name: ${_auth.toString()}');
+          SIPUAHelper.authSet = true;
         }
 
         _eventHandlers.emit(EventOnAuthenticated(request: _request));
