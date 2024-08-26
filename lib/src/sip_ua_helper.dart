@@ -24,7 +24,7 @@ import 'ua.dart';
 class SIPUAHelper extends EventManager {
   SIPUAHelper({Logger? customLogger}) {
     sharedPreferencesEncryptKey = Math.random().toString();
-    EncryptedSharedPreferences.initialize(sharedPreferencesEncryptKey).then((void value) => sharedPref = EncryptedSharedPreferences.getInstance());
+    EncryptedSharedPreferences.initialize(sharedPreferencesEncryptKey!).then((void value) => sharedPref = EncryptedSharedPreferences.getInstance());
     if (customLogger != null) {
       logger = customLogger;
     }
