@@ -1,9 +1,11 @@
 import 'dart:async';
 
+import 'package:encrypt_shared_preferences/provider.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:logger/logger.dart';
 import 'package:sip_ua/src/event_manager/data_events.dart';
 import 'package:sip_ua/src/map_helper.dart';
+import 'package:sip_ua/src/utils.dart';
 
 import 'config.dart';
 import 'constants.dart' as DartSIP_C;
@@ -21,12 +23,17 @@ import 'ua.dart';
 
 class SIPUAHelper extends EventManager {
   SIPUAHelper({Logger? customLogger}) {
+    sharedPreferencesEncryptKey = Math.random().toString();
+    EncryptedSharedPreferences.initialize(sharedPreferencesEncryptKey).then((void value) => sharedPref = EncryptedSharedPreferences.getInstance());
     if (customLogger != null) {
       logger = customLogger;
     }
   }
+  String? sharedPreferencesEncryptKey;
+  static bool authSet = false;
+  static EncryptedSharedPreferences? sharedPref;
 
-  UA? _ua;
+  late final UA? _ua;
   Settings _settings = Settings();
   UaSettings? _uaSettings;
   final Map<String?, Call> _calls = <String?, Call>{};

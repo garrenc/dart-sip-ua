@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:sip_ua/sip_ua.dart';
+
 import 'constants.dart' as DartSIP_C;
 import 'constants.dart';
 import 'event_manager/event_manager.dart';
@@ -60,13 +62,11 @@ class Registrator {
     _extraContactParams = '';
 
     // Custom Contact URI params for REGISTER and un-REGISTER.
-    setExtraContactUriParams(
-        ua.configuration.register_extra_contact_uri_params);
+    setExtraContactUriParams(ua.configuration.register_extra_contact_uri_params);
 
     if (reg_id != null) {
       _contact += ';reg-id=$reg_id';
-      _contact +=
-          ';+sip.instance="<urn:uuid:${_ua.configuration.instance_id}>"';
+      _contact += ';+sip.instance="<urn:uuid:${_ua.configuration.instance_id}>"';
     }
   }
 
@@ -128,33 +128,19 @@ class Registrator {
 
     List<String> extraHeaders = List<String>.from(_extraHeaders ?? <String>[]);
 
-    extraHeaders
-        .add('Contact: $_contact;expires=$_expires$_extraContactParams');
+    extraHeaders.add('Contact: $_contact;expires=$_expires$_extraContactParams');
     extraHeaders.add('Expires: $_expires');
 
     logger.w(_contact);
 
-    OutgoingRequest request = OutgoingRequest(
-        SipMethod.REGISTER,
-        _registrar,
-        _ua,
-        <String, dynamic>{
-          'to_uri': _to_uri,
-          'call_id': _call_id,
-          'cseq': _cseq += 1
-        },
-        extraHeaders);
+    OutgoingRequest request = OutgoingRequest(SipMethod.REGISTER, _registrar, _ua, <String, dynamic>{'to_uri': _to_uri, 'call_id': _call_id, 'cseq': _cseq += 1}, extraHeaders);
 
     EventManager handlers = EventManager();
     handlers.on(EventOnRequestTimeout(), (EventOnRequestTimeout value) {
-      _registrationFailure(
-          UnHandledResponse(408, DartSIP_C.CausesType.REQUEST_TIMEOUT),
-          DartSIP_C.CausesType.REQUEST_TIMEOUT);
+      _registrationFailure(UnHandledResponse(408, DartSIP_C.CausesType.REQUEST_TIMEOUT), DartSIP_C.CausesType.REQUEST_TIMEOUT);
     });
     handlers.on(EventOnTransportError(), (EventOnTransportError value) {
-      _registrationFailure(
-          UnHandledResponse(500, DartSIP_C.CausesType.CONNECTION_ERROR),
-          DartSIP_C.CausesType.CONNECTION_ERROR);
+      _registrationFailure(UnHandledResponse(500, DartSIP_C.CausesType.CONNECTION_ERROR), DartSIP_C.CausesType.CONNECTION_ERROR);
     });
     handlers.on(EventOnAuthenticated(), (EventOnAuthenticated value) {
       _cseq += 1;
@@ -180,8 +166,7 @@ class Registrator {
           _registering = false;
 
           if (!event.response!.hasHeader('Contact')) {
-            logger.d(
-                'no Contact header in response to REGISTER, response ignored');
+            logger.d('no Contact header in response to REGISTER, response ignored');
             return;
           }
 
@@ -190,8 +175,7 @@ class Registrator {
             contacts.add(item['parsed']);
           });
           // Get the Contact pointing to us and update the expires value accordingly.
-          dynamic contact = contacts.firstWhere(
-              (dynamic element) => element.uri.user == _ua.contact!.uri!.user);
+          dynamic contact = contacts.firstWhere((dynamic element) => element.uri.user == _ua.contact!.uri!.user);
 
           if (contact == null) {
             logger.d('no Contact header pointing to us, response ignored');
@@ -228,12 +212,10 @@ class Registrator {
 
           // Save gruu values.
           if (contact.hasParam('temp-gruu')) {
-            _ua.contact!.temp_gruu =
-                contact.getParam('temp-gruu').replaceAll('"', '');
+            _ua.contact!.temp_gruu = contact.getParam('temp-gruu').replaceAll('"', '');
           }
           if (contact.hasParam('pub-gruu')) {
-            _ua.contact!.pub_gruu =
-                contact.getParam('pub-gruu').replaceAll('"', '');
+            _ua.contact!.pub_gruu = contact.getParam('pub-gruu').replaceAll('"', '');
           }
 
           if (!_registered) {
@@ -245,12 +227,9 @@ class Registrator {
         if (status_code.contains(RegExp(r'^423$'))) {
           if (event.response!.hasHeader('min-expires')) {
             // Increase our registration interval to the suggested minimum.
-            _expires = num.tryParse(event.response!.getHeader('min-expires'))
-                    as int? ??
-                0;
+            _expires = num.tryParse(event.response!.getHeader('min-expires')) as int? ?? 0;
 
-            if (_expires! < MIN_REGISTER_EXPIRES)
-              _expires = MIN_REGISTER_EXPIRES;
+            if (_expires! < MIN_REGISTER_EXPIRES) _expires = MIN_REGISTER_EXPIRES;
 
             // Attempt the registration again immediately.
             register();
@@ -258,8 +237,7 @@ class Registrator {
             // This response MUST contain a Min-Expires header field.
             logger.d('423 response received for REGISTER without Min-Expires');
 
-            _registrationFailure(
-                event.response, DartSIP_C.CausesType.SIP_FAILURE_CODE);
+            _registrationFailure(event.response, DartSIP_C.CausesType.SIP_FAILURE_CODE);
           }
         } else {
           String cause = utils.sipErrorCause(event.response!.status_code);
@@ -289,8 +267,7 @@ class Registrator {
       _registrationTimer = null;
     }
 
-    List<dynamic> extraHeaders =
-        List<dynamic>.from(_extraHeaders ?? <dynamic>[]);
+    List<dynamic> extraHeaders = List<dynamic>.from(_extraHeaders ?? <dynamic>[]);
 
     if (unregister_all) {
       extraHeaders.add('Contact: *$_extraContactParams');
@@ -298,18 +275,16 @@ class Registrator {
       extraHeaders.add('Contact: $_contact;expires=0$_extraContactParams');
     }
 
+    if (SIPUAHelper.authSet) {
+      String auth = SIPUAHelper.sharedPref?.getString('webrtc_auth') ?? '';
+      extraHeaders.add(auth);
+      SIPUAHelper.sharedPref?.remove('webrtc_auth');
+      SIPUAHelper.authSet = false;
+    }
+
     extraHeaders.add('Expires: 0');
 
-    OutgoingRequest request = OutgoingRequest(
-        SipMethod.REGISTER,
-        _registrar,
-        _ua,
-        <String, dynamic>{
-          'to_uri': _to_uri,
-          'call_id': _call_id,
-          'cseq': _cseq += 1
-        },
-        extraHeaders);
+    OutgoingRequest request = OutgoingRequest(SipMethod.REGISTER, _registrar, _ua, <String, dynamic>{'to_uri': _to_uri, 'call_id': _call_id, 'cseq': _cseq += 1}, extraHeaders);
 
     EventManager handlers = EventManager();
     handlers.on(EventOnRequestTimeout(), (EventOnRequestTimeout value) {

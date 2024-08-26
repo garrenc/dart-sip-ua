@@ -1,3 +1,5 @@
+import 'package:sip_ua/sip_ua.dart';
+
 import 'constants.dart';
 import 'data.dart';
 import 'digest_authentication.dart';
@@ -25,8 +27,7 @@ class RequestSender {
     _staled = false;
 
     // If ua is in closing process or even closed just allow sending Bye and ACK.
-    if (ua.status == UAC.C.STATUS_USER_CLOSED &&
-        (_method != SipMethod.BYE || _method != SipMethod.ACK)) {
+    if (ua.status == UAC.C.STATUS_USER_CLOSED && (_method != SipMethod.BYE || _method != SipMethod.ACK)) {
       _eventHandlers.emit(EventOnTransportError());
     }
   }
@@ -59,16 +60,13 @@ class RequestSender {
 
     switch (_method) {
       case SipMethod.INVITE:
-        clientTransaction =
-            InviteClientTransaction(_ua, _ua.transport!, _request!, handlers);
+        clientTransaction = InviteClientTransaction(_ua, _ua.transport!, _request!, handlers);
         break;
       case SipMethod.ACK:
-        clientTransaction =
-            AckClientTransaction(_ua, _ua.transport!, _request!, handlers);
+        clientTransaction = AckClientTransaction(_ua, _ua.transport!, _request!, handlers);
         break;
       default:
-        clientTransaction = NonInviteClientTransaction(
-            _ua, _ua.transport!, _request!, handlers);
+        clientTransaction = NonInviteClientTransaction(_ua, _ua.transport!, _request!, handlers);
     }
 
     clientTransaction?.send();
@@ -87,8 +85,7 @@ class RequestSender {
     * Authentication
     * Authenticate once. _challenged_ flag used to avoid infinite authentications.
     */
-    if ((status_code == 401 || status_code == 407) &&
-        (_ua.configuration.password != null || _ua.configuration.ha1 != null)) {
+    if ((status_code == 401 || status_code == 407) && (_ua.configuration.password != null || _ua.configuration.ha1 != null)) {
       // Get and parse the appropriate WWW-Authenticate or Proxy-Authenticate header.
       if (response.status_code == 401) {
         challenge = response.parseHeader('www-authenticate');
@@ -100,20 +97,15 @@ class RequestSender {
 
       // Verify it seems a valid challenge.
       if (challenge == null) {
-        logger.d(
-            '${response.status_code} with wrong or missing challenge, cannot authenticate');
+        logger.d('${response.status_code} with wrong or missing challenge, cannot authenticate');
         _eventHandlers.emit(EventOnReceiveResponse(response: response));
 
         return;
       }
 
       if (!_challenged || (!_staled && challenge.stale == true)) {
-        _auth ??= DigestAuthentication(Credentials.fromMap(<String, dynamic>{
-          'username': _ua.configuration.authorization_user,
-          'password': _ua.configuration.password,
-          'realm': _ua.configuration.realm,
-          'ha1': _ua.configuration.ha1
-        }));
+        _auth ??= DigestAuthentication(Credentials.fromMap(
+            <String, dynamic>{'username': _ua.configuration.authorization_user, 'password': _ua.configuration.password, 'realm': _ua.configuration.realm, 'ha1': _ua.configuration.ha1}));
 
         // Verify that the challenge is really valid.
         if (!_auth!.authenticate(
@@ -142,9 +134,12 @@ class RequestSender {
 
         _request = _request!.clone();
         _request!.cseq = _request!.cseq! + 1;
-        _request!.setHeader(
-            'cseq', '${_request!.cseq} ${SipMethodHelper.getName(_method)}');
+        _request!.setHeader('cseq', '${_request!.cseq} ${SipMethodHelper.getName(_method)}');
         _request!.setHeader(authorization_header_name, _auth.toString());
+
+        if (!SIPUAHelper.authSet) {
+          SIPUAHelper.sharedPref?.setString('webrtc_auth', '$authorization_header_name: ${_auth.toString()}');
+        }
 
         _eventHandlers.emit(EventOnAuthenticated(request: _request));
         send();
