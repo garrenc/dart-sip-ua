@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:encrypt_shared_preferences/provider.dart';
 import 'package:sip_ua/sip_ua.dart';
 
 import 'constants.dart' as DartSIP_C;
@@ -276,9 +277,9 @@ class Registrator {
     }
 
     if (SIPUAHelper.authSet) {
-      String auth = SIPUAHelper.sharedPref?.getString('webrtc_auth') ?? '';
+      String auth = EncryptedSharedPreferences.getInstance().getString('webrtc_auth') ?? '';
       extraHeaders.add(auth);
-      SIPUAHelper.sharedPref?.remove('webrtc_auth');
+      EncryptedSharedPreferences.getInstance().remove('webrtc_auth');
       SIPUAHelper.authSet = false;
     }
 

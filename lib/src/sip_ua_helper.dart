@@ -23,17 +23,14 @@ import 'ua.dart';
 
 class SIPUAHelper extends EventManager {
   SIPUAHelper({Logger? customLogger}) {
-    sharedPreferencesEncryptKey = Math.random().toString();
-    EncryptedSharedPreferences.initialize(sharedPreferencesEncryptKey!).then((void value) => sharedPref = EncryptedSharedPreferences.getInstance());
+    EncryptedSharedPreferences.initialize(Math.random().toString());
     if (customLogger != null) {
       logger = customLogger;
     }
   }
-  String? sharedPreferencesEncryptKey;
   static bool authSet = false;
-  static EncryptedSharedPreferences? sharedPref;
 
-  late final UA? _ua;
+  UA? _ua;
   Settings _settings = Settings();
   UaSettings? _uaSettings;
   final Map<String?, Call> _calls = <String?, Call>{};

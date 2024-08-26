@@ -1,3 +1,4 @@
+import 'package:encrypt_shared_preferences/provider.dart';
 import 'package:sip_ua/sip_ua.dart';
 
 import 'constants.dart';
@@ -138,7 +139,7 @@ class RequestSender {
         _request!.setHeader(authorization_header_name, _auth.toString());
 
         if (!SIPUAHelper.authSet) {
-          SIPUAHelper.sharedPref?.setString('webrtc_auth', '$authorization_header_name: ${_auth.toString()}');
+          EncryptedSharedPreferences.getInstance().setString('webrtc_auth', '$authorization_header_name: ${_auth.toString()}');
         }
 
         _eventHandlers.emit(EventOnAuthenticated(request: _request));
