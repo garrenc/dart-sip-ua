@@ -1,5 +1,9 @@
 # Changelog
 
+[1.0.19]
+
+- Optimized for flutter 3.24
+
 [1.0.15]
 
 - Updated packages
