@@ -276,7 +276,7 @@ class Registrator {
       extraHeaders.add('Contact: $_contact;expires=0$_extraContactParams');
     }
 
-    if (SIPUAHelper.authSet) {
+    if (SIPUAHelper.authSet && SIPUAHelper.sharedPreferencesInitialized) {
       String auth = EncryptedSharedPreferences.getInstance().getString('webrtc_auth') ?? '';
       extraHeaders.add(auth);
       EncryptedSharedPreferences.getInstance().remove('webrtc_auth');

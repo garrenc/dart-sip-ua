@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:encrypt_shared_preferences/provider.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:logger/logger.dart';
+import 'package:sip_ua/src/constants.dart';
 import 'package:sip_ua/src/event_manager/data_events.dart';
 import 'package:sip_ua/src/map_helper.dart';
 import 'package:sip_ua/src/utils.dart';
@@ -23,12 +25,13 @@ import 'ua.dart';
 
 class SIPUAHelper extends EventManager {
   SIPUAHelper({Logger? customLogger}) {
-    EncryptedSharedPreferences.initialize('1111111111111111');
+    EncryptedSharedPreferences.initialize(List<String>.generate(16, (_) => Random().nextInt(10).toString()).join()).then((_) => sharedPreferencesInitialized = true);
     if (customLogger != null) {
       logger = customLogger;
     }
   }
   static bool authSet = false;
+  static bool sharedPreferencesInitialized = false;
 
   UA? _ua;
   Settings _settings = Settings();
@@ -145,6 +148,7 @@ class SIPUAHelper extends EventManager {
     _settings.dtmf_mode = uaSettings.dtmfMode;
     _settings.session_timers = uaSettings.sessionTimers;
     _settings.ice_gathering_timeout = uaSettings.iceGatheringTimeout;
+    _settings.session_timers_refresh_method = SipMethod.INVITE;
 
     try {
       _ua = UA(_settings);

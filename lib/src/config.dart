@@ -5,7 +5,6 @@ import 'exceptions.dart' as Exceptions;
 import 'grammar.dart';
 import 'logger.dart';
 import 'socket.dart' as Socket;
-import 'transports/websocket_interface.dart';
 import 'uri.dart';
 import 'utils.dart' as Utils;
 
@@ -68,8 +67,7 @@ class Settings {
 
 // Configuration checks.
 class Checks {
-  Map<String, Null Function(Settings src, Settings? dst)> mandatory =
-      <String, Null Function(Settings src, Settings? dst)>{
+  Map<String, Null Function(Settings src, Settings? dst)> mandatory = <String, Null Function(Settings src, Settings? dst)>{
     'sockets': (Settings src, Settings? dst) {
       List<WebSocketInterface>? sockets = src.sockets;
       /* Allow defining sockets parameter as:
@@ -107,8 +105,7 @@ class Checks {
       }
     }
   };
-  Map<String, Null Function(Settings src, Settings? dst)> optional =
-      <String, Null Function(Settings src, Settings? dst)>{
+  Map<String, Null Function(Settings src, Settings? dst)> optional = <String, Null Function(Settings src, Settings? dst)>{
     'authorization_user': (Settings src, Settings? dst) {
       String? authorization_user = src.authorization_user;
       if (authorization_user == null) return;
@@ -124,21 +121,17 @@ class Checks {
       dst!.user_agent = user_agent;
     },
     'connection_recovery_max_interval': (Settings src, Settings? dst) {
-      int connection_recovery_max_interval =
-          src.connection_recovery_max_interval;
+      int connection_recovery_max_interval = src.connection_recovery_max_interval;
       if (connection_recovery_max_interval == null) return;
       if (connection_recovery_max_interval > 0) {
-        dst!.connection_recovery_max_interval =
-            connection_recovery_max_interval;
+        dst!.connection_recovery_max_interval = connection_recovery_max_interval;
       }
     },
     'connection_recovery_min_interval': (Settings src, Settings? dst) {
-      int connection_recovery_min_interval =
-          src.connection_recovery_min_interval;
+      int connection_recovery_min_interval = src.connection_recovery_min_interval;
       if (connection_recovery_min_interval == null) return;
       if (connection_recovery_min_interval > 0) {
-        dst!.connection_recovery_min_interval =
-            connection_recovery_min_interval;
+        dst!.connection_recovery_min_interval = connection_recovery_min_interval;
       }
     },
     'contact_uri': (Settings src, Settings? dst) {
@@ -227,11 +220,9 @@ class Checks {
       }
     },
     'register_extra_contact_uri_params': (Settings src, Settings? dst) {
-      Map<String, dynamic>? register_extra_contact_uri_params =
-          src.register_extra_contact_uri_params;
+      Map<String, dynamic>? register_extra_contact_uri_params = src.register_extra_contact_uri_params;
       if (register_extra_contact_uri_params == null) return;
-      dst!.register_extra_contact_uri_params =
-          register_extra_contact_uri_params;
+      dst!.register_extra_contact_uri_params = register_extra_contact_uri_params;
     },
     'use_preloaded_route': (Settings src, Settings? dst) {
       bool use_preloaded_route = src.use_preloaded_route;
@@ -254,15 +245,13 @@ final Checks checks = Checks();
 void load(Settings src, Settings? dst) {
   try {
     // Check Mandatory parameters.
-    checks.mandatory
-        .forEach((String parameter, Null Function(Settings, Settings?) fun) {
+    checks.mandatory.forEach((String parameter, Null Function(Settings, Settings?) fun) {
       logger.i('Check mandatory parameter => $parameter.');
       fun(src, dst);
     });
 
     // Check Optional parameters.
-    checks.optional
-        .forEach((String parameter, Null Function(Settings, Settings?) fun) {
+    checks.optional.forEach((String parameter, Null Function(Settings, Settings?) fun) {
       logger.d('Check optional parameter => $parameter.');
       fun(src, dst);
     });

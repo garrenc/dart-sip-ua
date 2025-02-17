@@ -3,13 +3,10 @@ import '../grammar.dart';
 import '../logger.dart';
 import '../socket.dart';
 
-import 'websocket_dart_impl.dart'
-    if (dart.library.js) 'websocket_web_impl.dart';
+import 'websocket_dart_impl.dart' if (dart.library.js) 'websocket_web_impl.dart';
 
 class WebSocketInterface implements Socket {
-  WebSocketInterface(String url,
-      {required int messageDelay, WebSocketSettings? webSocketSettings})
-      : _messageDelay = messageDelay {
+  WebSocketInterface(String url, {required int messageDelay, WebSocketSettings? webSocketSettings}) : _messageDelay = messageDelay {
     logger.d('new() [url:$url]');
     _url = url;
     dynamic parsed_url = Grammar.parse(url, 'absoluteURI');
@@ -20,10 +17,7 @@ class WebSocketInterface implements Socket {
       logger.e('invalid WebSocket URI scheme: ${parsed_url.scheme}');
       throw AssertionError('Invalid argument: $url');
     } else {
-      String transport_scheme = webSocketSettings != null &&
-              webSocketSettings.transport_scheme != null
-          ? webSocketSettings.transport_scheme!.toLowerCase()
-          : parsed_url.scheme;
+      String transport_scheme = webSocketSettings != null && webSocketSettings.transport_scheme != null ? webSocketSettings.transport_scheme!.toLowerCase() : parsed_url.scheme;
 
       String port = parsed_url.port != null ? ':${parsed_url.port}' : '';
       _sip_uri = 'sip:${parsed_url.host}$port;transport=$transport_scheme';
@@ -48,8 +42,7 @@ class WebSocketInterface implements Socket {
   @override
   void Function()? onconnect;
   @override
-  void Function(WebSocketInterface socket, bool error, int? closeCode,
-      String? reason)? ondisconnect;
+  void Function(WebSocketInterface socket, bool error, int? closeCode, String? reason)? ondisconnect;
   @override
   void Function(dynamic data)? ondata;
   @override
@@ -105,9 +98,7 @@ class WebSocketInterface implements Socket {
         _onClose(true, closeCode, closeReason);
       };
 
-      _ws!.connect(
-          protocols: <String>[_websocket_protocol],
-          webSocketSettings: _webSocketSettings);
+      _ws!.connect(protocols: <String>[_websocket_protocol], webSocketSettings: _webSocketSettings);
     } catch (e, s) {
       logger.e(e.toString(), null, s);
       _connected = false;

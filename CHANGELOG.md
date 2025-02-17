@@ -1,8 +1,16 @@
 # Changelog
 
+[1.0.21]
+
+- Save Authorization session on register fixes
+
 [1.0.19]
 
 - Optimized for flutter 3.24
+
+[1.0.16-1.0.17]
+
+- Save Authorization session on register
 
 [1.0.15]
 

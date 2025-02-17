@@ -138,7 +138,7 @@ class RequestSender {
         _request!.setHeader('cseq', '${_request!.cseq} ${SipMethodHelper.getName(_method)}');
         _request!.setHeader(authorization_header_name, _auth.toString());
 
-        if (!SIPUAHelper.authSet) {
+        if (!SIPUAHelper.authSet && SIPUAHelper.sharedPreferencesInitialized) {
           EncryptedSharedPreferences.getInstance().setString('webrtc_auth', '$authorization_header_name: ${_auth.toString()}');
           SIPUAHelper.authSet = true;
         }
